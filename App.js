@@ -1,41 +1,51 @@
-import React, { useState } from "react";
-import Home from "./src/screens/home";
-import AddNote from "./src/screens/addNote";
-import EditNote from "./src/screens/editNote";
+import React, { useState } from 'react'
+import { Alert, StatusBar, View } from 'react-native'
+import Home from './src/screens/home'
+import AddNote from './src/screens/addNote'
+import EditNote from './src/screens/editNote'
 
-// Tambahkan function "addNote" sebagai prop
 const CurrentPageWidget = ({
   currentPage,
   noteList,
   setCurrentPage,
   addNote,
-}) => {
+  editNote,
+  deleteNote,
+  selectedNote,
+  setSelectedNote,
+}) => { 
   switch (currentPage) {
     case 'home':
-      return <Home noteList={noteList} setCurrentPage={setCurrentPage} />
+      return (
+        <Home setCurrentPage={setCurrentPage} noteList={noteList} selectedNote={selectedNote} setSelectedNote={setSelectedNote} editNote={editNote} deleteNote={deleteNote} />
+      )
     case 'add':
-      // Berikan function "addNote" ke component "AddNote"
       return <AddNote setCurrentPage={setCurrentPage} addNote={addNote} />
     case 'edit':
-      return <EditNote />
+      return <EditNote setCurrentPage={setCurrentPage} selectedNote={selectedNote} editNote={editNote} />
     default:
       return <Home />
   }
 }
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState("home");
+  const [currentPage, setCurrentPage] = useState('home')
+
   const [noteList, setNoteList] = useState([
     {
       id: 1,
-      title: "Note pertama",
-      desc: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
+      title: 'Note pertama',
+      desc:
+        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry',
     },
   ]);
-  const [noteToEdit, setNoteToEdit] = useState(null);
+
+  const [selectedNote, setSelectedNote] = useState({})
 
   const addNote = (title, desc) => {
-    const id = noteList.length > 0 ? noteList[noteList.length - 1].id + 1 : 1;
+    const id =
+      noteList.length > 0 ? noteList[noteList.length - 1].id + 1 : 1
+
     setNoteList([
       ...noteList,
       {
@@ -44,17 +54,59 @@ const App = () => {
         desc: desc,
       },
     ]);
-  };
+    Alert.alert('Info', 'Note baru ditambahkan!');
+  }
+
+  const editNote = (noteId, title, desc) => {
+    const noteToUpdate = noteList.find((note) => note.id === noteId);
+
+    if (noteToUpdate) {
+      setNoteList(
+        noteList.map((note) =>
+          note.id === noteId
+            ? { ...note, title, desc }
+            : note
+        )
+      );
+      Alert.alert('Info', 'Note telah diubah!');
+    } else {
+      console.log('No note found with the given ID');
+    }
+  }
+
+  const deleteNote = (noteId) => {
+    Alert.alert('Konfirmasi', 'Apakah Anda yakin ingin menghapus note ini?', [
+      {
+        text: 'Ya',
+        onPress: () => {
+          setNoteList(noteList.filter((item) => item.id !== noteId));
+          Alert.alert('Info', 'Note telah dihapus!');
+        },
+        style: 'destructive',
+      },
+      {
+        text: 'Tidak',
+        onPress: () => {console.log('Cancel Pressed');return},
+        style: 'cancel',
+      }
+    ])
+  }
 
   return (
-    <CurrentPageWidget
-      currentPage={currentPage}
-      noteList={noteList}
-      setCurrentPage={setCurrentPage}
-      // Berikan function addNote sebagai prop
-      addNote={addNote}
-    />
+    <View>
+      <StatusBar showHideTransition={'fade'} animated={true} />
+      <CurrentPageWidget
+        currentPage={currentPage}
+        noteList={noteList}
+        setCurrentPage={setCurrentPage}
+        addNote={addNote}
+        selectedNote={selectedNote}
+        setSelectedNote={setSelectedNote}
+        editNote={editNote}
+        deleteNote={deleteNote}
+      />
+    </View>
   );
-};
+}
 
-export default App;
+export default App
